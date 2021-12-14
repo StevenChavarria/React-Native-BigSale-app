@@ -9,5 +9,16 @@ export default {
         } catch (error) {
             console.error(error);
         }
-    }
+    },
+
+    async fetchDealDetail(dealId){
+     try {
+         const response = await fetch(apiHost + `/deal-details/${dealId}.json`);
+         const json = await response.json();
+         return json;
+     } catch (error) {
+         console.error(error)
+     }
+    },
 }
+
