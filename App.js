@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Animated, Easing, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, Animated, Easing, Dimensions, useNativeDriver } from 'react-native';
 import api from './api/dealsService'
 import Deals from './components/deals'
 import Detail from './components/detail'
@@ -12,12 +12,12 @@ export default function App() {
 
   const titleXPos = new Animated.Value(0);
 
-  useEffect(() => {  
+  useEffect(() => {
     (async () => {
       animatedTitle();
-      // const deals = await api.fetchInitialDeals();
-      // //console.info(deals);
-      // setDeals(deals);
+      const deals = await api.fetchInitialDeals();
+      //console.info(deals);
+      setDeals(deals);
     })();
   }, []);
 
@@ -26,20 +26,27 @@ export default function App() {
   const unsetCurrentDealId = () => setCurrentDealId(null);
 
   const animatedTitle = (direction = 1) => {
-       const width = (Dimensions.get('window').width - 200) / 2;
+    const width = (Dimensions.get('window').width - 200) / 2;
 
-       Animated.timing(titleXPos, {
-         toValue: direction * width,
-         duration: 1000,
-         easing: Easing.linear,
-       }).start(() => animatedTitle(direction * -1));
+    Animated.timing(titleXPos, {
+      toValue: direction * width,
+      duration: 1000,
+      useNativeDriver: false,
+      easing: Easing.linear,
+    }).start(({ finished }) => {
+      if (finished) {
+        animateTitle(direction * -1);
+      }
+    });
   };
 
   return (
     <>
       {
         currentDealId ? (
-          <Detail deal={getCurrentDeal()} onBack={unsetCurrentDealId} />
+          <View style={styles.main}>
+            <Detail deal={getCurrentDeal()} onBack={unsetCurrentDealId} />
+          </View>
         ) : deals.length > 0 ? (
           <Deals deals={deals} onItemPress={setCurrentDealId} />
         ) : (
@@ -54,6 +61,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  main: {
+    marginTop: 50,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
